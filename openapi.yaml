@@ -1,0 +1,76 @@
+openapi: 3.0.0
+info:
+  title: ESP32-P4 Audio Streamer
+  description: API for streaming audio from and playing audio to the ESP32-P4 device.
+  version: 1.0.0
+servers:
+  - url: http://{ip}
+    description: ESP32-P4 Device
+    variables:
+      ip:
+        default: 192.168.1.100
+        description: IP address of the ESP32 device
+paths:
+  /stream:
+    get:
+      summary: Stream live audio
+      description: Captures live audio from the microphone and streams it as a WAV file.
+      responses:
+        '200':
+          description: Continuous audio stream
+          content:
+            audio/wav:
+              schema:
+                type: string
+                format: binary
+  /play:
+    post:
+      summary: Play audio file
+      description: Upload a WAV file to be played on the device's speaker.
+      requestBody:
+        description: WAV audio file (16-bit PCM recommended, will resample if needed)
+        required: true
+        content:
+          audio/wav:
+            schema:
+              type: string
+              format: binary
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        '200':
+          description: Playback completed successfully
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Playback Finished"
+        '400':
+          description: Invalid file format or size
+        '500':
+          description: Internal server error
+  /volume:
+    post:
+      summary: Set playback volume
+      description: Adjusts the speaker output volume. Input range 0-100 is scaled to hardware range 60-80 (0 is Mute).
+      parameters:
+        - in: query
+          name: val
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 100
+          required: true
+          description: Volume level percentage (0-100)
+      responses:
+        '200':
+          description: Volume updated successfully
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Volume Updated"
+        '400':
+          description: Invalid volume parameter
